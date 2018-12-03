@@ -1,6 +1,6 @@
 import boto3
+from botocore.exceptions import ClientError
 import csv
-import json
 
 def getDynamo():
     return boto3.resource('dynamodb')
@@ -18,25 +18,31 @@ def getItem(data):
     return response['Item']
 
 
-def insertItem(data):
+def insertUpdateItem(data):
+    
     table.put_item(
         Item=data
     )
     return getItem(data)
     
+
 dynamodb = getDynamo()
 table = getTable('users')
-
-item = {
-    'username':'addisonbrodhagen',
-    'first_name': 'Addison',
-    'last_name': 'Brodhagen',
-    'email':'addisonbrodhagen@icloud.com'
-}
-
-print(insertItem(item))
-
-#insertItem(item)
 # TODO: Read from csv file
 # TODO: Convert to JSON object
 # TODO: Insert/Update db records
+try:
+    items = []
+    with open('names.csv') as csvfile:
+        reader = csv.DictReader(csvfile, delimiter=',')
+        
+        for row in reader:
+            item = row
+           # items.append(row)
+           # print(items)
+            response = insertUpdateItem(item)
+            print(response)
+       
+    print(f'SUCCESS') 
+except ClientError as e:
+    print(e.response['Error']['Code'])
